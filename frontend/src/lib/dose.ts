@@ -3,7 +3,8 @@ import { formatDecimal } from "./format";
 
 export function calculateDose(
   medication: Medication | null,
-  patientWeightKg: number
+  patientWeightKg: number,
+  duration: string
 ): DoseCalculation | null {
   if (!medication || !patientWeightKg || patientWeightKg <= 0) {
     return null;
@@ -14,13 +15,20 @@ export function calculateDose(
   const volumePorTomadaMl = dosePorTomadaMg / medication.concentracao_valor;
   const intervaloHoras = 24 / medication.fracionamento_vezes_dia;
   const frequenciaTexto = `${formatDecimal(intervaloHoras, 0)}/${formatDecimal(intervaloHoras, 0)}`;
+  const viaTexto = getRouteText(medication.via_administracao);
+  const usoTitulo = getUseTitle(medication.via_administracao);
 
   const prescriptionText = [
-    "Uso Oral",
+    usoTitulo,
     `1. ${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade}) ------- 1 Frasco`,
-    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por via oral de ${frequenciaTexto} em ${frequenciaTexto} horas.`,
-    `   ${medication.texto_prescricao_padrao}`
-  ].join("\n");
+    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} de ${frequenciaTexto} em ${frequenciaTexto} horas.`,
+    duration.trim() ? `   Duração: ${duration.trim()}.` : "",
+    cleanPrescriptionNote(medication.texto_prescricao_padrao)
+      ? `   ${cleanPrescriptionNote(medication.texto_prescricao_padrao)}`
+      : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return {
     doseDiariaMg,
@@ -28,6 +36,37 @@ export function calculateDose(
     volumePorTomadaMl,
     intervaloHoras,
     frequenciaTexto,
+    viaTexto,
+    usoTitulo,
     prescriptionText
   };
+}
+
+function cleanPrescriptionNote(note: string) {
+  return note
+    .replace(/administrar\s+por\s+\d+\s+dias?\.?\s*/i, "")
+    .replace(/usar\s+por\s+\d+\s+dias?\.?\s*/i, "")
+    .trim();
+}
+
+function getRouteText(route: string) {
+  const normalized = route.toUpperCase();
+
+  if (normalized === "EV") return "via endovenosa";
+  if (normalized === "IM") return "via intramuscular";
+  if (normalized === "SC") return "via subcutânea";
+  if (normalized === "IN") return "via inalatória";
+
+  return "via oral";
+}
+
+function getUseTitle(route: string) {
+  const normalized = route.toUpperCase();
+
+  if (normalized === "EV") return "Uso Endovenoso";
+  if (normalized === "IM") return "Uso Intramuscular";
+  if (normalized === "SC") return "Uso Subcutâneo";
+  if (normalized === "IN") return "Uso Inalatório";
+
+  return "Uso Oral";
 }

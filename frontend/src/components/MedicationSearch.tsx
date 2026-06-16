@@ -22,12 +22,19 @@ export function MedicationSearch({
       ? []
       : medications
           .filter((medication) => {
-            const haystack = `${medication.nome} ${medication.principio_ativo}`.toLocaleLowerCase(
-              "pt-BR"
-            );
+            const haystack = [
+              medication.nome,
+              medication.principio_ativo,
+              medication.concentracao_valor,
+              medication.concentracao_unidade,
+              medication.via_administracao,
+              medication.tags_busca
+            ]
+              .join(" ")
+              .toLocaleLowerCase("pt-BR");
             return haystack.includes(normalizedQuery);
           })
-          .slice(0, 4);
+          .slice(0, 6);
 
   return (
     <section className="search-section" aria-label="Busca de medicamento">
@@ -46,7 +53,8 @@ export function MedicationSearch({
             <button key={medication.id} type="button" onClick={() => onSelect(medication)}>
               <strong>{medication.nome}</strong>
               <span>
-                {medication.concentracao_valor} {medication.concentracao_unidade} •{" "}
+                {medication.via_administracao} • {medication.concentracao_valor}{" "}
+                {medication.concentracao_unidade} •{" "}
                 {medication.dose_alvo_mg_kg_dia} mg/kg/dia
               </span>
             </button>

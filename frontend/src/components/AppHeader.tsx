@@ -1,6 +1,10 @@
 import { Calculator, Settings } from "lucide-react";
 
-export function AppHeader() {
+type AppHeaderProps = {
+  onOpenSettings: () => void;
+};
+
+export function AppHeader({ onOpenSettings }: AppHeaderProps) {
   return (
     <header className="app-header">
       <div className="brand-mark" aria-hidden="true">
@@ -12,7 +16,12 @@ export function AppHeader() {
         </h1>
         <p>Calculadora Pediátrica Offline</p>
       </div>
-      <button className="icon-button" type="button" aria-label="Configurações">
+      <button
+        className="icon-button"
+        type="button"
+        aria-label="Configurações e status dos dados"
+        onClick={onOpenSettings}
+      >
         <Settings size={25} strokeWidth={2.5} />
       </button>
     </header>

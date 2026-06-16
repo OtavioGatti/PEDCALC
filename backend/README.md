@@ -42,6 +42,9 @@ O mapper aceita nomes em snake_case ou títulos legíveis em português:
 - `Alerta Restrição`
 - `Dose Alvo mg/kg/dia`
 - `Fracionamento Vezes/Dia`
+- `Via`
+- `Duração`
+- `Tags de Busca`
 - `Texto Prescrição Padrão`
 
 Unidades de idade aceitas: `Dias`, `Meses`, `Anos`.

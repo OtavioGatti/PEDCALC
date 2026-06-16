@@ -22,6 +22,9 @@ Use exatamente estes nomes:
 - `alerta_restricao`
 - `dose_alvo_mg_kg_dia`
 - `fracionamento_vezes_dia`
+- `via_administracao`
+- `duracao_tratamento_padrao`
+- `tags_busca`
 - `texto_prescricao_padrao`
 
 ## Unidades permitidas
@@ -39,8 +42,44 @@ Concentração:
 - `mcg/mL`
 - `UI/mL`
 
+Via de administração:
+
+- `VO`
+- `EV`
+- `IM`
+- `SC`
+- `IN`
+
+## Linhas por via
+
+Se o mesmo medicamento tiver dose, concentração, fracionamento ou texto de prescrição diferente
+por via de administração, crie uma linha separada para cada via. Exemplo:
+
+- `Dipirona` com `via_administracao = VO`
+- `Dipirona` com `via_administracao = EV`
+
+O app agrupa medicamentos pelo nome/princípio ativo e permite alternar a via quando houver mais
+de uma linha compatível.
+
 ## Observação
 
 A database original `PEDCALC` não permitiu alteração de schema pelo plugin do Notion,
 embora permitisse criação de linhas. Por isso, a database operacional correta foi criada
 dentro da mesma página `PEDCALC Main`.
+
+## Supabase
+
+Antes de rodar o sync com os campos `via_administracao`, `duracao_tratamento_padrao` e
+`tags_busca`, aplique a migração:
+
+```sql
+alter table public.medicamentos
+  add column if not exists via_administracao text not null default 'VO',
+  add column if not exists duracao_tratamento_padrao text not null default '',
+  add column if not exists tags_busca text not null default '';
+
+create index if not exists medicamentos_tags_busca_idx
+  on public.medicamentos using gin (to_tsvector('portuguese', coalesce(tags_busca, '')));
+```
+
+O mesmo SQL está em `supabase/002_add_prescription_metadata.sql`.

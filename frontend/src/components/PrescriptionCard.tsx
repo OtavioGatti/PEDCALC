@@ -1,4 +1,4 @@
-import { Baby, CalendarDays, Scale } from "lucide-react";
+import { CalendarDays, Clock, Route, Scale } from "lucide-react";
 import type { DoseCalculation, Medication, PatientAge } from "../types/medication";
 import { formatDateTime, formatDecimal } from "../lib/format";
 
@@ -7,13 +7,15 @@ type PrescriptionCardProps = {
   calculation: DoseCalculation | null;
   weightKg: number;
   age: PatientAge;
+  duration: string;
 };
 
 export function PrescriptionCard({
   medication,
   calculation,
   weightKg,
-  age
+  age,
+  duration
 }: PrescriptionCardProps) {
   return (
     <section className="prescription-card" aria-label="Resultado da prescrição">
@@ -54,7 +56,6 @@ export function PrescriptionCard({
           <pre className="prescription-text">{calculation.prescriptionText}</pre>
 
           <div className="patient-strip">
-            <InfoItem icon={<Baby />} label="Paciente" value="-" />
             <InfoItem
               icon={<Scale />}
               label="Peso"
@@ -65,6 +66,8 @@ export function PrescriptionCard({
               label="Idade"
               value={age.value ? `${formatDecimal(age.value)} ${age.unit.toLocaleLowerCase("pt-BR")}` : "-"}
             />
+            <InfoItem icon={<Route />} label="Via" value={medication.via_administracao} />
+            <InfoItem icon={<Clock />} label="Duração" value={duration.trim() || "-"} />
           </div>
 
           <p className="clinical-note">

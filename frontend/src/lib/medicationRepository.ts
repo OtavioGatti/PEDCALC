@@ -17,21 +17,22 @@ export async function loadMedications(): Promise<MedicationLoadResult> {
 
   if (remote.length > 0) {
     const syncedAt = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(remote));
+    const medications = normalizeMedications(remote);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(medications));
     localStorage.setItem(LAST_SYNC_KEY, syncedAt);
-    return { medications: remote, source: "supabase", lastSync: syncedAt };
+    return { medications, source: "supabase", lastSync: syncedAt };
   }
 
   if (cached.length > 0) {
     return {
-      medications: cached,
+      medications: normalizeMedications(cached),
       source: "local",
       lastSync: localStorage.getItem(LAST_SYNC_KEY)
     };
   }
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(seedMedications));
-  return { medications: seedMedications, source: "seed", lastSync: null };
+  return { medications: normalizeMedications(seedMedications), source: "seed", lastSync: null };
 }
 
 function readCachedMedications() {
@@ -63,4 +64,13 @@ async function tryLoadFromSupabase() {
   }
 
   return data as Medication[];
+}
+
+function normalizeMedications(medications: Medication[]) {
+  return medications.map((medication) => ({
+    ...medication,
+    via_administracao: medication.via_administracao || "VO",
+    duracao_tratamento_padrao: medication.duracao_tratamento_padrao || "",
+    tags_busca: medication.tags_busca || ""
+  }));
 }

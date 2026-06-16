@@ -47,7 +47,7 @@ button {
   width: min(100%, 880px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 28px 18px 112px;
+  padding: 28px 18px 32px;
 }
 
 .app-header {
@@ -89,12 +89,115 @@ button {
 }
 
 .icon-button {
+  cursor: pointer;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   color: var(--mint-deep);
   background: transparent;
+}
+
+.icon-button.compact {
+  width: 36px;
+  height: 36px;
+}
+
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px;
+  background: rgba(17, 24, 39, 0.24);
+}
+
+.settings-panel {
+  width: min(100%, 380px);
+  height: fit-content;
+  border: 1px solid #d9dde4;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(17, 24, 39, 0.18);
+}
+
+.settings-heading {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 18px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.settings-heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.settings-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 18px;
+}
+
+.settings-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.settings-list dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.settings-list dd {
+  margin: 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: right;
+}
+
+.refresh-button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: calc(100% - 36px);
+  min-height: 46px;
+  margin: 0 18px 18px;
+  border-radius: 8px;
+  color: #111827;
+  background: var(--mint);
+  font-weight: 850;
+}
+
+.refresh-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .inputs-grid {
@@ -195,7 +298,7 @@ button {
 }
 
 .search-section {
-  margin-bottom: 10px;
+  margin-bottom: 14px;
 }
 
 .search-shell {
@@ -218,16 +321,11 @@ button {
   color: #747b89;
 }
 
-.search-hint,
-.source-line {
+.search-hint {
   margin: 8px 8px 0;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.35;
-}
-
-.source-line {
-  margin-bottom: 18px;
 }
 
 .search-results {
@@ -258,6 +356,71 @@ button {
   font-size: 13px;
 }
 
+.prescription-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.option-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.option-field > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.option-field svg {
+  color: var(--mint-deep);
+}
+
+.option-field input,
+.route-selector {
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.option-field input {
+  width: 100%;
+  padding: 0 14px;
+  color: var(--ink);
+  outline: 0;
+}
+
+.route-selector {
+  overflow: hidden;
+  display: flex;
+}
+
+.route-selector button {
+  cursor: pointer;
+  flex: 1;
+  min-width: 48px;
+  color: var(--ink);
+  background: #ffffff;
+  font-weight: 850;
+}
+
+.route-selector button + button {
+  border-left: 1px solid var(--line);
+}
+
+.route-selector button.active {
+  color: #064e3b;
+  background: rgba(90, 219, 145, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(46, 203, 121, 0.68);
+}
+
 .age-alert {
   display: grid;
   grid-template-columns: 30px 1fr 22px;
@@ -284,6 +447,29 @@ button {
   color: #111827;
   font-size: 13px;
   line-height: 1.45;
+}
+
+.alert-icon {
+  width: 32px;
+  height: 32px;
+  color: #ea760b;
+}
+
+.alert-icon path:first-child {
+  fill: currentColor;
+}
+
+.alert-icon path:nth-child(2),
+.alert-icon circle {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.alert-icon circle {
+  fill: #ffffff;
+  stroke: none;
 }
 
 .prescription-card {
@@ -401,7 +587,7 @@ button {
 
 .patient-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0;
   padding: 16px 0;
 }
@@ -458,13 +644,8 @@ button {
 }
 
 .copy-bar {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 20;
-  padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, #f9fafb 74%, rgba(249, 250, 251, 0));
+  margin-top: 18px;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .copy-bar button {
@@ -502,6 +683,22 @@ button {
   .inputs-grid {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
     align-items: end;
+  }
+}
+
+@media (max-width: 560px) {
+  .prescription-options {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-strip {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 12px;
+  }
+
+  .info-item:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
   }
 }
 

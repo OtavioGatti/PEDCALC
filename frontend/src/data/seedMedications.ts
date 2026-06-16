@@ -15,7 +15,10 @@ export const seedMedications: Medication[] = [
       "Este medicamento não é recomendado para menores de 3 meses sem avaliação médica especializada.",
     dose_alvo_mg_kg_dia: 45,
     fracionamento_vezes_dia: 2,
-    texto_prescricao_padrao: "Administrar por 7 dias. Agitar o frasco antes de usar."
+    via_administracao: "VO",
+    duracao_tratamento_padrao: "7 dias",
+    tags_busca: "amoxicilina antibiotico beta lactamico infecção otite sinusite pneumonia vo oral",
+    texto_prescricao_padrao: "Agitar o frasco antes de usar."
   },
   {
     id: "paracetamol-200mg-ml",
@@ -30,6 +33,9 @@ export const seedMedications: Medication[] = [
     alerta_restricao: null,
     dose_alvo_mg_kg_dia: 60,
     fracionamento_vezes_dia: 4,
+    via_administracao: "VO",
+    duracao_tratamento_padrao: "3 dias",
+    tags_busca: "paracetamol acetaminofeno analgesico antitermico febre dor vo oral",
     texto_prescricao_padrao: "Usar se dor ou febre. Não exceder 5 doses em 24 horas."
   },
   {
@@ -46,6 +52,9 @@ export const seedMedications: Medication[] = [
       "Evitar em menores de 6 meses, desidratação, doença renal ou suspeita de dengue.",
     dose_alvo_mg_kg_dia: 30,
     fracionamento_vezes_dia: 3,
+    via_administracao: "VO",
+    duracao_tratamento_padrao: "3 dias",
+    tags_busca: "ibuprofeno antiinflamatorio aine analgesico antitermico febre dor vo oral",
     texto_prescricao_padrao: "Administrar após alimentação. Usar pelo menor tempo necessário."
   },
   {
@@ -62,6 +71,9 @@ export const seedMedications: Medication[] = [
       "Evitar em menores de 3 meses ou abaixo de 5 kg. Confirmar restrições locais.",
     dose_alvo_mg_kg_dia: 60,
     fracionamento_vezes_dia: 4,
+    via_administracao: "VO",
+    duracao_tratamento_padrao: "3 dias",
+    tags_busca: "dipirona metamizol analgesico antitermico febre dor vo oral",
     texto_prescricao_padrao: "Usar se dor ou febre. Suspender se surgirem sinais de alergia."
   }
 ];

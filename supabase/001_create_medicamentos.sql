@@ -14,6 +14,9 @@ create table if not exists public.medicamentos (
   alerta_restricao text null,
   dose_alvo_mg_kg_dia numeric not null check (dose_alvo_mg_kg_dia > 0),
   fracionamento_vezes_dia numeric not null check (fracionamento_vezes_dia > 0),
+  via_administracao text not null default 'VO',
+  duracao_tratamento_padrao text not null default '',
+  tags_busca text not null default '',
   texto_prescricao_padrao text not null default '',
   synced_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
@@ -25,6 +28,9 @@ create index if not exists medicamentos_nome_idx
 
 create index if not exists medicamentos_principio_ativo_idx
   on public.medicamentos using btree (principio_ativo);
+
+create index if not exists medicamentos_tags_busca_idx
+  on public.medicamentos using gin (to_tsvector('portuguese', coalesce(tags_busca, '')));
 
 create or replace function public.set_updated_at()
 returns trigger as $$

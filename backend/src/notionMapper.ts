@@ -19,6 +19,9 @@ const medicamentoSchema = z.object({
   alerta_restricao: z.string().nullable(),
   dose_alvo_mg_kg_dia: z.number().positive(),
   fracionamento_vezes_dia: z.number().positive(),
+  via_administracao: z.string().min(1),
+  duracao_tratamento_padrao: z.string(),
+  tags_busca: z.string(),
   texto_prescricao_padrao: z.string(),
   synced_at: z.string().datetime()
 });
@@ -35,6 +38,14 @@ const propertyAliases = {
   alerta_restricao: ["alerta_restricao", "Alerta Restrição", "Alerta Restricao"],
   dose_alvo_mg_kg_dia: ["dose_alvo_mg_kg_dia", "Dose Alvo mg/kg/dia", "Dose Alvo"],
   fracionamento_vezes_dia: ["fracionamento_vezes_dia", "Fracionamento Vezes/Dia", "Fracionamento"],
+  via_administracao: ["via_administracao", "Via Administração", "Via Administracao", "Via"],
+  duracao_tratamento_padrao: [
+    "duracao_tratamento_padrao",
+    "Duração Tratamento Padrão",
+    "Duracao Tratamento Padrao",
+    "Duração"
+  ],
+  tags_busca: ["tags_busca", "Tags Busca", "Tags de Busca", "Busca"],
   texto_prescricao_padrao: ["texto_prescricao_padrao", "Texto Prescrição Padrão", "Texto Prescricao Padrao"]
 } as const;
 
@@ -54,6 +65,11 @@ export function mapNotionPageToMedicamento(page: PageObjectResponse): Medicament
     alerta_restricao: readNullableText(optionalProperty(props, propertyAliases.alerta_restricao)),
     dose_alvo_mg_kg_dia: readNumber(requiredProperty(props, propertyAliases.dose_alvo_mg_kg_dia)),
     fracionamento_vezes_dia: readNumber(requiredProperty(props, propertyAliases.fracionamento_vezes_dia)),
+    via_administracao:
+      readNullableText(optionalProperty(props, propertyAliases.via_administracao)) ?? "VO",
+    duracao_tratamento_padrao:
+      readNullableText(optionalProperty(props, propertyAliases.duracao_tratamento_padrao)) ?? "",
+    tags_busca: readNullableText(optionalProperty(props, propertyAliases.tags_busca)) ?? "",
     texto_prescricao_padrao: readText(optionalProperty(props, propertyAliases.texto_prescricao_padrao)) ?? "",
     synced_at: new Date().toISOString()
   };

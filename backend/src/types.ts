@@ -13,6 +13,9 @@ export type Medicamento = {
   alerta_restricao: string | null;
   dose_alvo_mg_kg_dia: number;
   fracionamento_vezes_dia: number;
+  via_administracao: string;
+  duracao_tratamento_padrao: string;
+  tags_busca: string;
   texto_prescricao_padrao: string;
   synced_at: string;
 };
