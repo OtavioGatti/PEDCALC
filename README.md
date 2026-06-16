@@ -9,6 +9,7 @@ PWA mobile-first para cálculo de posologia pediátrica em mL, com motor de cál
 - `supabase/`: SQL inicial da tabela `medicamentos` com RLS.
 - `docs/concepts/`: referência visual gerada para o primeiro layout.
 - `docs/screenshots/`: capturas usadas na verificação visual local.
+- `docs/NOTION_SETUP.md`: database Notion operacional e colunas esperadas pelo sync.
 
 ## Rodar o frontend
 
