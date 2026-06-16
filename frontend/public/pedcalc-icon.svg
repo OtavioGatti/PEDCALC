@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>PedCalc</title>
+  <rect width="128" height="128" rx="22" fill="#5ADB91"/>
+  <rect x="28" y="22" width="72" height="84" rx="10" fill="none" stroke="#111827" stroke-width="8"/>
+  <path d="M42 48h44M42 68h44M64 48v44" stroke="#111827" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="44" cy="92" r="5" fill="#111827"/>
+  <circle cx="84" cy="92" r="5" fill="#111827"/>
+</svg>
