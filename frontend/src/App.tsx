@@ -178,7 +178,6 @@ export default function App() {
         calculation={calculation}
         weightKg={weightKg}
         age={patientAge}
-        duration={duration}
       />
 
       <CopyBar disabled={!calculation} copied={copied} onCopy={copyPrescription} />

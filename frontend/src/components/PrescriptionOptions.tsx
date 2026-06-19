@@ -20,6 +20,13 @@ export function PrescriptionOptions({
     return null;
   }
 
+  const selectorClassName = [
+    "route-selector",
+    routeOptions.length === 1 ? "single-route" : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <section className="prescription-options" aria-label="Opções da prescrição">
       <label className="option-field">
@@ -39,7 +46,7 @@ export function PrescriptionOptions({
           <Route size={19} />
           Via
         </span>
-        <div className="route-selector" role="radiogroup" aria-label="Via de administração">
+        <div className={selectorClassName} role="radiogroup" aria-label="Via de administração">
           {routeOptions.map((medication) => (
             <button
               key={medication.id}

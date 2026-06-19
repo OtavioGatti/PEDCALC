@@ -17,12 +17,13 @@ export function calculateDose(
   const frequenciaTexto = `${formatDecimal(intervaloHoras, 0)}/${formatDecimal(intervaloHoras, 0)}`;
   const viaTexto = getRouteText(medication.via_administracao);
   const usoTitulo = getUseTitle(medication.via_administracao);
+  const duracaoTexto = formatTreatmentDuration(duration);
+  const duracaoSufixo = duracaoTexto ? ` por ${duracaoTexto}` : "";
 
   const prescriptionText = [
     usoTitulo,
     `1. ${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade}) ------- 1 Frasco`,
-    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} de ${frequenciaTexto} em ${frequenciaTexto} horas.`,
-    duration.trim() ? `   Duração: ${duration.trim()}.` : "",
+    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} de ${frequenciaTexto} em ${frequenciaTexto} horas${duracaoSufixo}.`,
     cleanPrescriptionNote(medication.texto_prescricao_padrao)
       ? `   ${cleanPrescriptionNote(medication.texto_prescricao_padrao)}`
       : ""
@@ -38,8 +39,23 @@ export function calculateDose(
     frequenciaTexto,
     viaTexto,
     usoTitulo,
+    duracaoTexto,
     prescriptionText
   };
+}
+
+export function formatTreatmentDuration(duration: string) {
+  const trimmed = duration.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^\d+(?:[,.]\d+)?$/.test(trimmed)) {
+    return `${trimmed} dias`;
+  }
+
+  return trimmed;
 }
 
 function cleanPrescriptionNote(note: string) {

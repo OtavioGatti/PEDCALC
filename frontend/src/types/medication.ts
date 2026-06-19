@@ -33,5 +33,6 @@ export type DoseCalculation = {
   frequenciaTexto: string;
   viaTexto: string;
   usoTitulo: string;
+  duracaoTexto: string;
   prescriptionText: string;
 };
