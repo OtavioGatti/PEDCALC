@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>PEDCALC</title>
+  <rect width="512" height="512" fill="#0F3D2A"/>
+  <g transform="translate(76 85) scale(15)">
+    <path d="M12 2.5c3.4 4.3 6.5 7.7 6.5 11.3a6.5 6.5 0 0 1-13 0C5.5 10.2 8.6 6.8 12 2.5Z" fill="#5ADB91"/>
+    <path d="M9.4 14h5.2M12 11.4v5.2" fill="none" stroke="#0F3D2A" stroke-width="1.9" stroke-linecap="round"/>
+  </g>
+</svg>

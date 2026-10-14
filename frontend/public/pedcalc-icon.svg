@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>PEDCALC</title>
-  <rect width="128" height="128" rx="28" fill="#0F3D2A"/>
-  <g fill="none" stroke="#5ADB91" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" transform="translate(16 16) scale(4)">
-    <path d="M12 3c3 4 6 7.2 6 10.5a6 6 0 0 1-12 0C6 10.2 9 7 12 3Z" stroke-width="1.75"/>
-    <path d="M9.5 14h5" stroke-width="1.75"/>
-    <path d="M12 11.5v5" stroke-width="1.75"/>
+  <rect width="512" height="512" rx="112" fill="#0F3D2A"/>
+  <g transform="translate(52 62.2) scale(17)">
+    <path d="M12 2.5c3.4 4.3 6.5 7.7 6.5 11.3a6.5 6.5 0 0 1-13 0C5.5 10.2 8.6 6.8 12 2.5Z" fill="#5ADB91"/>
+    <path d="M9.4 14h5.2M12 11.4v5.2" fill="none" stroke="#0F3D2A" stroke-width="1.9" stroke-linecap="round"/>
   </g>
 </svg>

@@ -12,23 +12,27 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["pedcalc-icon.svg"],
+      includeAssets: ["pedcalc-icon.svg", "apple-touch-icon-180x180.png"],
       manifest: {
         name: "PEDCALC",
         short_name: "PEDCALC",
+        lang: "pt-BR",
         description: "Calculadora pediátrica offline para posologia em mL.",
-        theme_color: "#5ADB91",
-        background_color: "#F9FAFB",
+        theme_color: "#FFFFFF",
+        background_color: "#F6F7F9",
         display: "standalone",
         orientation: "portrait",
         scope: isGitHubPages ? "/PEDCALC/" : "/",
         start_url: isGitHubPages ? "/PEDCALC/" : "/",
+        // Relative paths: the app is served under /PEDCALC/ on GitHub Pages.
         icons: [
+          { src: "pwa-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "pwa-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
           {
-            src: "/pedcalc-icon.svg",
-            sizes: "any",
-            type: "image/svg+xml",
-            purpose: "any maskable"
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
           }
         ]
       },
