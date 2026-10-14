@@ -1,38 +1,46 @@
 import type { ReactNode } from "react";
 
 type NumericFieldProps = {
+  id: string;
   label: string;
-  icon: ReactNode;
   value: string;
   suffix?: string;
   placeholder?: string;
+  invalid?: boolean;
+  addon?: ReactNode;
   onChange: (value: string) => void;
 };
 
 export function NumericField({
+  id,
   label,
-  icon,
   value,
   suffix,
   placeholder,
+  invalid = false,
+  addon,
   onChange
 }: NumericFieldProps) {
   return (
-    <label className="field-block">
-      <span className="field-label">
-        {icon}
+    <div className="field">
+      <label className="field-label" htmlFor={id}>
         {label}
-      </span>
-      <span className="numeric-shell">
-        <input
-          inputMode="decimal"
-          type="text"
-          value={value}
-          placeholder={placeholder}
-          onChange={(event) => onChange(event.target.value)}
-        />
-        {suffix ? <span>{suffix}</span> : null}
-      </span>
-    </label>
+      </label>
+      <div className="field-row">
+        <div className={`input-shell input-lg${invalid ? " is-warning" : ""}`}>
+          <input
+            id={id}
+            inputMode="decimal"
+            type="text"
+            autoComplete="off"
+            value={value}
+            placeholder={placeholder}
+            onChange={(event) => onChange(event.target.value)}
+          />
+          {suffix ? <span className="input-suffix">{suffix}</span> : null}
+        </div>
+        {addon}
+      </div>
+    </div>
   );
 }

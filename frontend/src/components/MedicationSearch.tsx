@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Search } from "lucide-react";
+import { formatDecimal } from "../lib/format";
 import type { Medication } from "../types/medication";
 
 type MedicationSearchProps = {
@@ -9,6 +11,14 @@ type MedicationSearchProps = {
   onSelect: (medication: Medication) => void;
 };
 
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
+}
+
 export function MedicationSearch({
   medications,
   query,
@@ -16,57 +26,86 @@ export function MedicationSearch({
   onQueryChange,
   onSelect
 }: MedicationSearchProps) {
-  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-  const results =
-    normalizedQuery.length < 2
-      ? []
-      : medications
-          .filter((medication) => {
-            const haystack = [
+  const inputRef = useRef<HTMLInputElement>(null);
+  const normalizedQuery = normalizeSearch(query);
+  const isShowingSelection = selectedMedication !== null && query === selectedMedication.nome;
+  const isSearching = normalizedQuery.length >= 2 && !isShowingSelection;
+
+  const results = isSearching
+    ? medications
+        .filter((medication) =>
+          normalizeSearch(
+            [
               medication.nome,
               medication.principio_ativo,
               medication.concentracao_valor,
               medication.concentracao_unidade,
               medication.via_administracao,
               medication.tags_busca
-            ]
-              .join(" ")
-              .toLocaleLowerCase("pt-BR");
-            return haystack.includes(normalizedQuery);
-          })
-          .slice(0, 6);
+            ].join(" ")
+          ).includes(normalizedQuery)
+        )
+        .slice(0, 6)
+    : [];
+
+  function changeMedication() {
+    onQueryChange("");
+    inputRef.current?.focus();
+  }
 
   return (
-    <section className="search-section" aria-label="Busca de medicamento">
-      <label className="search-shell">
-        <Search size={24} strokeWidth={2.4} aria-hidden="true" />
+    <div className="med-search">
+      <label className="input-shell search-shell">
+        <Search size={18} strokeWidth={2} aria-hidden="true" />
         <input
+          ref={inputRef}
+          aria-label="Buscar medicamento"
+          autoComplete="off"
           value={query}
-          placeholder="Buscar medicamento (ex.: amoxicilina, paracetamol...)"
+          placeholder="Buscar por nome, princípio ativo ou indicação"
           onChange={(event) => onQueryChange(event.target.value)}
         />
       </label>
 
-      {results.length > 0 ? (
-        <div className="search-results">
-          {results.map((medication) => (
-            <button key={medication.id} type="button" onClick={() => onSelect(medication)}>
-              <strong>{medication.nome}</strong>
-              <span>
-                {medication.via_administracao} • {medication.concentracao_valor}{" "}
-                {medication.concentracao_unidade} •{" "}
-                {medication.dose_alvo_mg_kg_dia} mg/kg/dia
-              </span>
-            </button>
-          ))}
+      {isSearching ? (
+        results.length > 0 ? (
+          <ul className="search-results" aria-label="Resultados da busca">
+            {results.map((medication) => (
+              <li key={medication.id}>
+                <button type="button" onClick={() => onSelect(medication)}>
+                  <strong>{medication.nome}</strong>
+                  <span>
+                    {formatDecimal(medication.concentracao_valor)} {medication.concentracao_unidade}{" "}
+                    · {medication.via_administracao} ·{" "}
+                    {formatDecimal(medication.dose_alvo_mg_kg_dia)} mg/kg/dia
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="field-hint">Nenhum medicamento encontrado para “{query.trim()}”.</p>
+        )
+      ) : null}
+
+      {selectedMedication ? (
+        <div className="selected-med">
+          <div>
+            <strong>{selectedMedication.nome}</strong>
+            <span>
+              {selectedMedication.principio_ativo} ·{" "}
+              {formatDecimal(selectedMedication.concentracao_valor)}{" "}
+              {selectedMedication.concentracao_unidade} ·{" "}
+              {formatDecimal(selectedMedication.dose_alvo_mg_kg_dia)} mg/kg/dia
+            </span>
+          </div>
+          <button type="button" className="button-secondary" onClick={changeMedication}>
+            Trocar
+          </button>
         </div>
-      ) : (
-        <p className="search-hint">
-          {selectedMedication
-            ? `${selectedMedication.nome} selecionado`
-            : "Busca preditiva - digite pelo menos 2 caracteres"}
-        </p>
-      )}
-    </section>
+      ) : !isSearching ? (
+        <p className="field-hint">Digite pelo menos 2 letras para buscar.</p>
+      ) : null}
+    </div>
   );
 }

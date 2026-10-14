@@ -9,15 +9,14 @@ type AgeUnitControlProps = {
 
 export function AgeUnitControl({ value, onChange }: AgeUnitControlProps) {
   return (
-    <div className="unit-control" role="radiogroup" aria-label="Unidade da idade">
+    <div className="segmented segmented-lg" role="radiogroup" aria-label="Unidade da idade">
       {units.map((unit) => (
         <button
           key={unit}
           type="button"
-          className={unit === value ? "active" : ""}
-          onClick={() => onChange(unit)}
-          aria-checked={unit === value}
           role="radio"
+          aria-checked={unit === value}
+          onClick={() => onChange(unit)}
         >
           {unit}
         </button>

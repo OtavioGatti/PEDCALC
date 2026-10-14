@@ -81,13 +81,19 @@ export function calculateDose(
   const usoTitulo = getUseTitle(medication.via_administracao);
   const duracaoTexto = formatTreatmentDuration(duration);
   const duracaoSufixo = duracaoTexto ? ` por ${duracaoTexto}` : "";
-  const note = cleanPrescriptionNote(medication.texto_prescricao_padrao);
+  const receita = {
+    titulo: usoTitulo,
+    item: `${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade})`,
+    quantidade: "1 Frasco",
+    posologia: `Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} ${frequenciaTexto}${duracaoSufixo}.`,
+    observacao: cleanPrescriptionNote(medication.texto_prescricao_padrao)
+  };
 
   const prescriptionText = [
-    usoTitulo,
-    `1. ${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade}) ------- 1 Frasco`,
-    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} ${frequenciaTexto}${duracaoSufixo}.`,
-    note ? `   ${note}` : ""
+    receita.titulo,
+    `1. ${receita.item} ------- ${receita.quantidade}`,
+    `   ${receita.posologia}`,
+    receita.observacao ? `   ${receita.observacao}` : ""
   ]
     .filter(Boolean)
     .join("\n");
@@ -103,6 +109,7 @@ export function calculateDose(
     viaTexto,
     usoTitulo,
     duracaoTexto,
+    receita,
     prescriptionText
   };
 

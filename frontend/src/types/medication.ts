@@ -38,7 +38,16 @@ export type DoseCalculation = {
   viaTexto: string;
   usoTitulo: string;
   duracaoTexto: string;
+  receita: PrescriptionLines;
   prescriptionText: string;
+};
+
+export type PrescriptionLines = {
+  titulo: string;
+  item: string;
+  quantidade: string;
+  posologia: string;
+  observacao: string;
 };
 
 export type DoseResult =

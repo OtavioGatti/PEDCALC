@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, Scale } from "lucide-react";
-import { AgeAlert } from "./components/AgeAlert";
 import { AgeUnitControl } from "./components/AgeUnitControl";
 import { AppHeader } from "./components/AppHeader";
-import { CopyBar } from "./components/CopyBar";
+import { CopyBar, type CopyState } from "./components/CopyBar";
 import { MedicationSearch } from "./components/MedicationSearch";
 import { NumericField } from "./components/NumericField";
 import { PrescriptionCard } from "./components/PrescriptionCard";
@@ -13,7 +11,6 @@ import { calculateDose } from "./lib/dose";
 import { loadMedications, type MedicationLoadResult } from "./lib/medicationRepository";
 import { validateMedicationAge } from "./lib/age";
 import type { AgeUnit, Medication } from "./types/medication";
-import "./index.css";
 
 function parseDecimal(value: string) {
   const normalized = value.replace(",", ".").replace(/[^\d.]/g, "");
@@ -33,7 +30,8 @@ export default function App() {
     source: "seed",
     lastSync: null
   });
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [ageAcknowledged, setAgeAcknowledged] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -68,6 +66,14 @@ export default function App() {
   const calculation = doseResult.status === "ok" ? doseResult.calculation : null;
   const ageValidation = validateMedicationAge(selectedMedication, patientAge);
 
+  const needsAcknowledgement = ageValidation.isRestricted && !ageAcknowledged;
+
+  // Any change to the patient or the medication invalidates a previous acknowledgement.
+  function resetForPatientChange() {
+    setCopyState("idle");
+    setAgeAcknowledged(false);
+  }
+
   async function refreshMedications() {
     setIsRefreshing(true);
     try {
@@ -89,28 +95,38 @@ export default function App() {
     setSelectedMedication(medication);
     setQuery(medication.nome);
     setDuration(medication.duracao_tratamento_padrao);
-    setCopied(false);
+    resetForPatientChange();
   }
 
   function selectRoute(medication: Medication) {
     setSelectedMedication(medication);
     setDuration(medication.duracao_tratamento_padrao);
-    setCopied(false);
+    resetForPatientChange();
   }
 
   async function copyPrescription() {
-    if (!calculation) {
+    if (!calculation || needsAcknowledgement) {
       return;
     }
 
-    await navigator.clipboard.writeText(calculation.prescriptionText);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
+    try {
+      await navigator.clipboard.writeText(calculation.prescriptionText);
+      setCopyState("copied");
+      window.setTimeout(() => setCopyState("idle"), 1800);
+    } catch {
+      setCopyState("error");
+    }
   }
 
+  const copyHint = !calculation
+    ? null
+    : needsAcknowledgement
+      ? "Confirme a restrição por idade para liberar a cópia."
+      : null;
+
   return (
-    <main className="app-shell">
-      <AppHeader onOpenSettings={() => setIsSettingsOpen(true)} />
+    <div className="app">
+      <AppHeader loadState={loadState} onOpenSettings={() => setIsSettingsOpen(true)} />
       <SettingsPanel
         isOpen={isSettingsOpen}
         isRefreshing={isRefreshing}
@@ -120,67 +136,93 @@ export default function App() {
         onRefresh={() => refreshMedications()}
       />
 
-      <section className="inputs-grid" aria-label="Dados do paciente">
-        <NumericField
-          label="Peso (kg)"
-          icon={<Scale size={24} strokeWidth={2.4} />}
-          value={weight}
-          suffix="kg"
-          placeholder="0"
-          onChange={(value) => {
-            setWeight(value);
-            setCopied(false);
-          }}
-        />
+      <main className="app-main">
+        <div className="input-column">
+          <section className="panel" aria-labelledby="patient-title">
+            <h2 className="panel-title" id="patient-title">
+              Paciente
+            </h2>
+            <div className="patient-fields">
+              <NumericField
+                id="weight"
+                label="Peso"
+                value={weight}
+                suffix="kg"
+                placeholder="0"
+                onChange={(value) => {
+                  setWeight(value);
+                  resetForPatientChange();
+                }}
+              />
+              <NumericField
+                id="age"
+                label="Idade"
+                value={ageValue}
+                placeholder="0"
+                invalid={ageValidation.isRestricted}
+                addon={
+                  <AgeUnitControl
+                    value={ageUnit}
+                    onChange={(unit) => {
+                      setAgeUnit(unit);
+                      resetForPatientChange();
+                    }}
+                  />
+                }
+                onChange={(value) => {
+                  setAgeValue(value);
+                  resetForPatientChange();
+                }}
+              />
+            </div>
+          </section>
 
-        <div className="age-field">
-          <NumericField
-            label="Idade"
-            icon={<CalendarDays size={24} strokeWidth={2.4} />}
-            value={ageValue}
-            placeholder="0"
-            onChange={(value) => {
-              setAgeValue(value);
-              setCopied(false);
-            }}
-          />
-          <AgeUnitControl value={ageUnit} onChange={setAgeUnit} />
+          <section className="panel" aria-labelledby="medication-title">
+            <h2 className="panel-title" id="medication-title">
+              Medicamento
+            </h2>
+            <MedicationSearch
+              medications={loadState.medications}
+              query={query}
+              selectedMedication={selectedMedication}
+              onQueryChange={(value) => {
+                setQuery(value);
+                setCopyState("idle");
+              }}
+              onSelect={selectMedication}
+            />
+            <PrescriptionOptions
+              duration={duration}
+              routeOptions={routeOptions}
+              selectedMedication={selectedMedication}
+              onDurationChange={(value) => {
+                setDuration(value);
+                setCopyState("idle");
+              }}
+              onRouteChange={selectRoute}
+            />
+          </section>
         </div>
-      </section>
 
-      <MedicationSearch
-        medications={loadState.medications}
-        query={query}
-        selectedMedication={selectedMedication}
-        onQueryChange={(value) => {
-          setQuery(value);
-          setCopied(false);
-        }}
-        onSelect={selectMedication}
-      />
-
-      <PrescriptionOptions
-        duration={duration}
-        routeOptions={routeOptions}
-        selectedMedication={selectedMedication}
-        onDurationChange={(value) => {
-          setDuration(value);
-          setCopied(false);
-        }}
-        onRouteChange={selectRoute}
-      />
-
-      <AgeAlert message={ageValidation.message} />
-
-      <PrescriptionCard
-        medication={selectedMedication}
-        calculation={calculation}
-        errorMessage={doseResult.status === "error" ? doseResult.message : null}
-        weightKg={weightKg}
-        age={patientAge}
-      />
-
-      <CopyBar disabled={!calculation} copied={copied} onCopy={copyPrescription} />
-    </main>
+        <div className="result-column">
+          <PrescriptionCard
+            medication={selectedMedication}
+            calculation={calculation}
+            errorMessage={doseResult.status === "error" ? doseResult.message : null}
+            weightKg={weightKg}
+            age={patientAge}
+            ageAlert={ageValidation.message}
+            ageAcknowledged={ageAcknowledged}
+            onAgeAcknowledgedChange={setAgeAcknowledged}
+          />
+          <CopyBar
+            disabled={!calculation || needsAcknowledgement}
+            state={copyState}
+            hint={copyHint}
+            onCopy={copyPrescription}
+          />
+        </div>
+      </main>
+    </div>
   );
 }

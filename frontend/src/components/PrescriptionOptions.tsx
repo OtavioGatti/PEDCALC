@@ -1,4 +1,3 @@
-import { Clock, Route } from "lucide-react";
 import type { Medication } from "../types/medication";
 
 type PrescriptionOptionsProps = {
@@ -20,40 +19,19 @@ export function PrescriptionOptions({
     return null;
   }
 
-  const selectorClassName = [
-    "route-selector",
-    routeOptions.length === 1 ? "single-route" : ""
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <section className="prescription-options" aria-label="Opções da prescrição">
-      <label className="option-field">
-        <span>
-          <Clock size={19} />
-          Duração
-        </span>
-        <input
-          value={duration}
-          placeholder="Ex.: 3 dias"
-          onChange={(event) => onDurationChange(event.target.value)}
-        />
-      </label>
-
-      <div className="option-field">
-        <span>
-          <Route size={19} />
+    <div className="options-row">
+      <div className="field">
+        <span className="field-label" id="route-label">
           Via
         </span>
-        <div className={selectorClassName} role="radiogroup" aria-label="Via de administração">
+        <div className="segmented" role="radiogroup" aria-labelledby="route-label">
           {routeOptions.map((medication) => (
             <button
               key={medication.id}
               type="button"
               role="radio"
               aria-checked={medication.id === selectedMedication.id}
-              className={medication.id === selectedMedication.id ? "active" : ""}
               onClick={() => onRouteChange(medication)}
             >
               {medication.via_administracao}
@@ -61,6 +39,21 @@ export function PrescriptionOptions({
           ))}
         </div>
       </div>
-    </section>
+
+      <div className="field">
+        <label className="field-label" htmlFor="duration">
+          Duração
+        </label>
+        <div className="input-shell">
+          <input
+            id="duration"
+            autoComplete="off"
+            value={duration}
+            placeholder="Ex.: 7 dias"
+            onChange={(event) => onDurationChange(event.target.value)}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
