@@ -16,6 +16,7 @@ export type Medication = {
   dose_max_tomada_mg: number | null;
   dose_max_dia_mg: number | null;
   fracionamento_vezes_dia: number;
+  gotas_por_ml: number | null;
   via_administracao: string;
   duracao_tratamento_padrao: string;
   tags_busca: string;
@@ -23,9 +24,11 @@ export type Medication = {
 };
 
 export type PatientAge = {
-  value: number;
+  value: number | null;
   unit: AgeUnit;
 };
+
+export type AdministrationUnit = "mL" | "gotas";
 
 export type DoseCalculation = {
   doseDiariaMg: number;
@@ -33,6 +36,11 @@ export type DoseCalculation = {
   dosePorTomadaCalculadaMg: number;
   limitadoPelaDoseMaxima: boolean;
   volumePorTomadaMl: number;
+  unidadeAplicada: AdministrationUnit;
+  gotasPorMl: number;
+  gotasFatorPadrao: boolean;
+  gotasPorTomadaExatas: number;
+  gotasPorTomada: number | null;
   intervaloHoras: number;
   frequenciaTexto: string;
   viaTexto: string;

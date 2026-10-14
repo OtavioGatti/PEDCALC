@@ -1,4 +1,9 @@
-import type { DoseCalculation, DoseResult, Medication } from "../types/medication";
+import type {
+  AdministrationUnit,
+  DoseCalculation,
+  DoseResult,
+  Medication
+} from "../types/medication";
 import { formatDecimal } from "./format";
 
 const MASS_TO_MG: Record<string, number> = {
@@ -11,6 +16,8 @@ const MASS_TO_MG: Record<string, number> = {
 const CONCENTRATION_PATTERN = /^(mcg|µg|mg|g)\s*\/\s*(\d+(?:[.,]\d+)?)?\s*ml$/i;
 
 export const SUPPORTED_CONCENTRATION_UNITS = "mg/mL, mg/5 mL, mcg/mL ou g/mL";
+
+export const DEFAULT_DROPS_PER_ML = 20;
 
 export function concentrationMgPerMl(valor: number, unidade: string): number | null {
   const match = unidade.trim().match(CONCENTRATION_PATTERN);
@@ -46,7 +53,8 @@ export function frequencyText(timesPerDay: number) {
 export function calculateDose(
   medication: Medication | null,
   patientWeightKg: number,
-  duration: string
+  duration: string,
+  unidade: AdministrationUnit = "mL"
 ): DoseResult {
   if (!medication || !(patientWeightKg > 0)) {
     return { status: "empty" };
@@ -75,6 +83,16 @@ export function calculateDose(
   const limitadoPelaDoseMaxima = dosePorTomadaMg < dosePorTomadaCalculadaMg;
   const doseDiariaMg = dosePorTomadaMg * timesPerDay;
   const volumePorTomadaMl = dosePorTomadaMg / mgPerMl;
+  const gotasConfiguradas = positiveOrNull(medication.gotas_por_ml);
+  const gotasPorMl = gotasConfiguradas ?? DEFAULT_DROPS_PER_ML;
+  const gotasPorTomadaExatas = volumePorTomadaMl * gotasPorMl;
+  const gotasPorTomada = roundDrops(gotasPorTomadaExatas, limitadoPelaDoseMaxima);
+  const unidadeAplicada: AdministrationUnit =
+    unidade === "gotas" && gotasPorTomada !== null ? "gotas" : "mL";
+  const quantidadePorTomada =
+    unidadeAplicada === "gotas" && gotasPorTomada !== null
+      ? `${gotasPorTomada} ${gotasPorTomada === 1 ? "gota" : "gotas"}`
+      : `${formatDecimal(volumePorTomadaMl)} mL`;
   const intervaloHoras = 24 / timesPerDay;
   const frequenciaTexto = frequencyText(timesPerDay);
   const viaTexto = getRouteText(medication.via_administracao);
@@ -85,7 +103,7 @@ export function calculateDose(
     titulo: usoTitulo,
     item: `${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade})`,
     quantidade: "1 Frasco",
-    posologia: `Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} ${frequenciaTexto}${duracaoSufixo}.`,
+    posologia: `Dar ${quantidadePorTomada} por ${viaTexto} ${frequenciaTexto}${duracaoSufixo}.`,
     observacao: cleanPrescriptionNote(medication.texto_prescricao_padrao)
   };
 
@@ -104,6 +122,11 @@ export function calculateDose(
     dosePorTomadaCalculadaMg,
     limitadoPelaDoseMaxima,
     volumePorTomadaMl,
+    unidadeAplicada,
+    gotasPorMl,
+    gotasFatorPadrao: gotasConfiguradas === null,
+    gotasPorTomadaExatas,
+    gotasPorTomada,
     intervaloHoras,
     frequenciaTexto,
     viaTexto,
@@ -128,6 +151,17 @@ export function formatTreatmentDuration(duration: string) {
   }
 
   return trimmed;
+}
+
+// Drops must be whole; a dose capped at the maximum rounds down so it never exceeds the cap.
+// Below one drop the dose cannot be given in drops at all.
+function roundDrops(exactDrops: number, cappedAtMaximum: boolean): number | null {
+  const tolerance = 1e-9;
+  const rounded = cappedAtMaximum
+    ? Math.floor(exactDrops + tolerance)
+    : Math.round(exactDrops + tolerance);
+
+  return exactDrops + tolerance < 1 || rounded < 1 ? null : rounded;
 }
 
 function positiveOrNull(value: number | null | undefined) {

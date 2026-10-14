@@ -44,6 +44,7 @@ O mapper aceita nomes em snake_case ou títulos legíveis em português:
 - `Dose Máx Tomada mg` (opcional)
 - `Dose Máx Dia mg` (opcional)
 - `Fracionamento Vezes/Dia`
+- `Gotas por mL` (opcional)
 - `Via`
 - `Duração`
 - `Tags de Busca`

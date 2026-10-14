@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { makeMedication } from "../test/factories";
-import { ageToDays, validateMedicationAge } from "./age";
+import { ageToDays, formatAge, validateMedicationAge } from "./age";
+
+describe("formatAge", () => {
+  it.each<[number | null, "Dias" | "Meses" | "Anos", string]>([
+    [1, "Dias", "1 dia"],
+    [1, "Meses", "1 mês"],
+    [1, "Anos", "1 ano"],
+    [0, "Dias", "0 dias"],
+    [2.5, "Meses", "2,5 meses"],
+    [null, "Anos", ""]
+  ])("%s %s → '%s'", (valor, unidade, esperado) => {
+    expect(formatAge({ value: valor, unit: unidade })).toBe(esperado);
+  });
+});
 
 describe("ageToDays", () => {
   it.each<[number, "Dias" | "Meses" | "Anos", number]>([
@@ -70,6 +83,16 @@ describe("validateMedicationAge", () => {
     const medication = makeMedication({ idade_min_valor: null, idade_min_unidade: null });
 
     expect(validateMedicationAge(medication, { value: 1, unit: "Dias" }).isRestricted).toBe(false);
+  });
+
+  it("recém-nascido (idade 0) é validado, não ignorado", () => {
+    expect(validateMedicationAge(dipirona, { value: 0, unit: "Dias" }).isRestricted).toBe(true);
+  });
+
+  it("idade não informada não gera alerta", () => {
+    expect(validateMedicationAge(dipirona, { value: null, unit: "Meses" }).isRestricted).toBe(
+      false
+    );
   });
 
   it("sem medicamento não gera alerta", () => {

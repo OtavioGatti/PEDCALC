@@ -15,6 +15,7 @@ export type Medicamento = {
   dose_max_tomada_mg: number | null;
   dose_max_dia_mg: number | null;
   fracionamento_vezes_dia: number;
+  gotas_por_ml: number | null;
   via_administracao: string;
   duracao_tratamento_padrao: string;
   tags_busca: string;

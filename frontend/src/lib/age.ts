@@ -1,10 +1,26 @@
 import type { AgeUnit, Medication, PatientAge } from "../types/medication";
+import { formatDecimal } from "./format";
 
 const DAYS_BY_UNIT: Record<AgeUnit, number> = {
   Dias: 1,
   Meses: 30.4375,
   Anos: 365.25
 };
+
+const SINGULAR_UNIT: Record<AgeUnit, string> = {
+  Dias: "dia",
+  Meses: "mês",
+  Anos: "ano"
+};
+
+export function formatAge(age: PatientAge) {
+  if (age.value === null) {
+    return "";
+  }
+
+  const unit = age.value === 1 ? SINGULAR_UNIT[age.unit] : age.unit.toLocaleLowerCase("pt-BR");
+  return `${formatDecimal(age.value)} ${unit}`;
+}
 
 export function ageToDays(value: number | null, unit: AgeUnit | null): number | null {
   if (value === null || unit === null || Number.isNaN(value)) {
@@ -15,7 +31,7 @@ export function ageToDays(value: number | null, unit: AgeUnit | null): number | 
 }
 
 export function validateMedicationAge(medication: Medication | null, age: PatientAge) {
-  if (!medication || !age.value) {
+  if (!medication || age.value === null) {
     return { isRestricted: false, message: null };
   }
 

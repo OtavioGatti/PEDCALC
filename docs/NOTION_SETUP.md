@@ -24,6 +24,7 @@ Use exatamente estes nomes:
 - `dose_max_tomada_mg` (opcional, número em mg)
 - `dose_max_dia_mg` (opcional, número em mg)
 - `fracionamento_vezes_dia`
+- `gotas_por_ml` (opcional, número)
 - `via_administracao`
 - `duracao_tratamento_padrao`
 - `tags_busca`
@@ -61,6 +62,18 @@ Via de administração:
 - `SC`
 - `IN`
 
+## Gotas por mL
+
+`gotas_por_ml` é quantas gotas do conta-gotas da apresentação equivalem a 1 mL (ex.: dipirona
+500 mg/mL, 1 gota = 25 mg: `20`). Varia entre apresentações, então confira na bula.
+
+- Preenchido: o app abre esse medicamento já em gotas e converte com esse fator.
+- Em branco: o app abre em mL; se o usuário trocar para gotas, usa 20 gotas/mL e mostra um aviso
+  pedindo para conferir na bula.
+
+As gotas são arredondadas para número inteiro. Quando a dose foi limitada à dose máxima, o
+arredondamento é para baixo. Doses menores que 1 gota continuam em mL.
+
 ## Linhas por via
 
 Se o mesmo medicamento tiver dose, concentração, fracionamento ou texto de prescrição diferente
@@ -97,3 +110,6 @@ O mesmo SQL está em `supabase/002_add_prescription_metadata.sql`.
 
 Antes de fazer deploy do backend com os campos de dose máxima, aplique também
 `supabase/003_add_max_dose.sql`. Sem ela, o sync falha com "Could not find the column".
+
+O mesmo vale para `gotas_por_ml`: aplique `supabase/004_add_drops_per_ml.sql` antes do deploy do
+backend.

@@ -16,6 +16,7 @@ export function makeMedication(overrides: Partial<Medication> = {}): Medication 
     dose_max_tomada_mg: null,
     dose_max_dia_mg: null,
     fracionamento_vezes_dia: 4,
+    gotas_por_ml: null,
     via_administracao: "VO",
     duracao_tratamento_padrao: "",
     tags_busca: "",

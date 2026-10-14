@@ -628,6 +628,38 @@ p {
   padding-top: 16px;
 }
 
+.dose-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.segmented-sm {
+  height: 44px;
+  padding: 3px;
+  border-radius: 9px;
+}
+
+.segmented-sm button {
+  min-width: 60px;
+  font-size: 13.5px;
+}
+
+.drops-note {
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
+.drops-note.is-warning {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn-text-2);
+}
+
 .dose-hero-label {
   font-size: 13px;
   font-weight: 500;

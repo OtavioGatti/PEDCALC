@@ -4,18 +4,27 @@ import { AppHeader } from "./components/AppHeader";
 import { CopyBar, type CopyState } from "./components/CopyBar";
 import { MedicationSearch } from "./components/MedicationSearch";
 import { NumericField } from "./components/NumericField";
-import { PrescriptionCard } from "./components/PrescriptionCard";
+import { PrescriptionCard, type ClinicalWarning } from "./components/PrescriptionCard";
 import { PrescriptionOptions } from "./components/PrescriptionOptions";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { calculateDose } from "./lib/dose";
 import { loadMedications, type MedicationLoadResult } from "./lib/medicationRepository";
 import { validateMedicationAge } from "./lib/age";
-import type { AgeUnit, Medication } from "./types/medication";
+import { validateWeightForAge } from "./lib/weight";
+import type { AdministrationUnit, AgeUnit, Medication } from "./types/medication";
 
-function parseDecimal(value: string) {
+// An empty field is "not informed" (null), which is different from a typed 0.
+function parseDecimal(value: string): number | null {
   const normalized = value.replace(",", ".").replace(/[^\d.]/g, "");
+  if (!normalized) {
+    return null;
+  }
   const parsed = Number(normalized);
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function defaultUnitFor(medication: Medication): AdministrationUnit {
+  return medication.gotas_por_ml ? "gotas" : "mL";
 }
 
 export default function App() {
@@ -25,13 +34,14 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null);
   const [duration, setDuration] = useState("");
+  const [doseUnit, setDoseUnit] = useState<AdministrationUnit>("mL");
   const [loadState, setLoadState] = useState<MedicationLoadResult>({
     medications: [],
     source: "seed",
     lastSync: null
   });
   const [copyState, setCopyState] = useState<CopyState>("idle");
-  const [ageAcknowledged, setAgeAcknowledged] = useState(false);
+  const [warningsAcknowledged, setWarningsAcknowledged] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -39,7 +49,7 @@ export default function App() {
     refreshMedications();
   }, []);
 
-  const weightKg = parseDecimal(weight);
+  const weightKg = parseDecimal(weight) ?? 0;
   const patientAge = useMemo(
     () => ({ value: parseDecimal(ageValue), unit: ageUnit }),
     [ageValue, ageUnit]
@@ -62,16 +72,25 @@ export default function App() {
 
     return Array.from(uniqueByRoute.values());
   }, [loadState.medications, selectedMedication]);
-  const doseResult = calculateDose(selectedMedication, weightKg, duration);
+  const doseResult = calculateDose(selectedMedication, weightKg, duration, doseUnit);
   const calculation = doseResult.status === "ok" ? doseResult.calculation : null;
   const ageValidation = validateMedicationAge(selectedMedication, patientAge);
+  const weightWarning = validateWeightForAge(weightKg, patientAge);
 
-  const needsAcknowledgement = ageValidation.isRestricted && !ageAcknowledged;
+  const warnings: ClinicalWarning[] = [];
+  if (ageValidation.message) {
+    warnings.push({ id: "age", title: "Restrição por idade", message: ageValidation.message });
+  }
+  if (weightWarning) {
+    warnings.push({ id: "weight", title: "Peso incomum para a idade", message: weightWarning });
+  }
+
+  const needsAcknowledgement = warnings.length > 0 && !warningsAcknowledged;
 
   // Any change to the patient or the medication invalidates a previous acknowledgement.
   function resetForPatientChange() {
     setCopyState("idle");
-    setAgeAcknowledged(false);
+    setWarningsAcknowledged(false);
   }
 
   async function refreshMedications() {
@@ -95,12 +114,14 @@ export default function App() {
     setSelectedMedication(medication);
     setQuery(medication.nome);
     setDuration(medication.duracao_tratamento_padrao);
+    setDoseUnit(defaultUnitFor(medication));
     resetForPatientChange();
   }
 
   function selectRoute(medication: Medication) {
     setSelectedMedication(medication);
     setDuration(medication.duracao_tratamento_padrao);
+    setDoseUnit(defaultUnitFor(medication));
     resetForPatientChange();
   }
 
@@ -121,7 +142,7 @@ export default function App() {
   const copyHint = !calculation
     ? null
     : needsAcknowledgement
-      ? "Confirme a restrição por idade para liberar a cópia."
+      ? "Confirme os alertas acima para liberar a cópia."
       : null;
 
   return (
@@ -149,6 +170,7 @@ export default function App() {
                 value={weight}
                 suffix="kg"
                 placeholder="0"
+                invalid={weightWarning !== null}
                 onChange={(value) => {
                   setWeight(value);
                   resetForPatientChange();
@@ -211,9 +233,14 @@ export default function App() {
             errorMessage={doseResult.status === "error" ? doseResult.message : null}
             weightKg={weightKg}
             age={patientAge}
-            ageAlert={ageValidation.message}
-            ageAcknowledged={ageAcknowledged}
-            onAgeAcknowledgedChange={setAgeAcknowledged}
+            warnings={warnings}
+            warningsAcknowledged={warningsAcknowledged}
+            onWarningsAcknowledgedChange={setWarningsAcknowledged}
+            doseUnit={doseUnit}
+            onDoseUnitChange={(unit) => {
+              setDoseUnit(unit);
+              setCopyState("idle");
+            }}
           />
           <CopyBar
             disabled={!calculation || needsAcknowledgement}

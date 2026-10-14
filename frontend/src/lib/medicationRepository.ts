@@ -71,6 +71,7 @@ function normalizeMedications(medications: Medication[]) {
     ...medication,
     dose_max_tomada_mg: medication.dose_max_tomada_mg ?? null,
     dose_max_dia_mg: medication.dose_max_dia_mg ?? null,
+    gotas_por_ml: medication.gotas_por_ml ?? null,
     via_administracao: medication.via_administracao || "VO",
     duracao_tratamento_padrao: medication.duracao_tratamento_padrao || "",
     tags_busca: medication.tags_busca || ""

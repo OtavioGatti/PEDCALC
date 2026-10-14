@@ -165,6 +165,77 @@ describe("calculateDose: dose máxima", () => {
   });
 });
 
+describe("calculateDose: conversão para gotas", () => {
+  function drops(medication: Medication, weightKg: number, duration = ""): DoseCalculation {
+    const result = calculateDose(medication, weightKg, duration, "gotas");
+    if (result.status !== "ok") {
+      throw new Error("Esperava cálculo ok");
+    }
+    return result.calculation;
+  }
+
+  it("dipirona 500 mg/mL a 20 gotas/mL: 14 kg → 210 mg = 0,42 mL = 8 gotas", () => {
+    const result = drops(makeMedication({ gotas_por_ml: 20 }), 14, "3");
+
+    expect(result.gotasPorTomadaExatas).toBeCloseTo(8.4);
+    expect(result.gotasPorTomada).toBe(8);
+    expect(result.unidadeAplicada).toBe("gotas");
+    expect(result.gotasFatorPadrao).toBe(false);
+    expect(result.prescriptionText).toContain(
+      "Dar 8 gotas por via oral de 6 em 6 horas por 3 dias."
+    );
+  });
+
+  it("arredonda para o inteiro mais próximo (7,5 → 8)", () => {
+    expect(drops(makeMedication({ gotas_por_ml: 20 }), 12.5).gotasPorTomada).toBe(8);
+  });
+
+  it("usa o fator de gotas/mL do medicamento (10 gotas/mL)", () => {
+    const result = drops(makeMedication({ gotas_por_ml: 10 }), 14);
+
+    expect(result.gotasPorMl).toBe(10);
+    expect(result.gotasPorTomada).toBe(4);
+  });
+
+  it("sem fator cadastrado usa 20 gotas/mL e sinaliza que é o padrão", () => {
+    const result = drops(makeMedication({ gotas_por_ml: null }), 14);
+
+    expect(result.gotasPorMl).toBe(20);
+    expect(result.gotasFatorPadrao).toBe(true);
+  });
+
+  it("dose limitada à máxima arredonda para baixo, nunca acima do teto", () => {
+    const medication = makeMedication({ gotas_por_ml: 20, dose_max_tomada_mg: 990 });
+    const result = drops(medication, 80);
+
+    expect(result.gotasPorTomadaExatas).toBeCloseTo(39.6);
+    expect(result.gotasPorTomada).toBe(39);
+    expect((result.gotasPorTomada as number) * (500 / 20)).toBeLessThanOrEqual(990);
+  });
+
+  it("dose menor que 1 gota mantém a receita em mL", () => {
+    const result = drops(makeMedication({ gotas_por_ml: 20 }), 0.5);
+
+    expect(result.gotasPorTomada).toBeNull();
+    expect(result.unidadeAplicada).toBe("mL");
+    expect(result.prescriptionText).toContain("Dar 0,02 mL");
+  });
+
+  it("1 gota usa o singular", () => {
+    const result = drops(makeMedication({ gotas_por_ml: 20 }), 1.67);
+
+    expect(result.gotasPorTomada).toBe(1);
+    expect(result.prescriptionText).toContain("Dar 1 gota por");
+  });
+
+  it("em mL a receita não muda, mesmo com fator de gotas cadastrado", () => {
+    const result = calc(makeMedication({ gotas_por_ml: 20 }), 14);
+
+    expect(result.unidadeAplicada).toBe("mL");
+    expect(result.prescriptionText).toContain("Dar 0,42 mL");
+  });
+});
+
 describe("concentrationMgPerMl", () => {
   it.each<[number, string, number]>([
     [500, "mg/mL", 500],

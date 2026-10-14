@@ -1,6 +1,18 @@
 import { Info, TriangleAlert } from "lucide-react";
-import type { DoseCalculation, Medication, PatientAge } from "../types/medication";
+import type {
+  AdministrationUnit,
+  DoseCalculation,
+  Medication,
+  PatientAge
+} from "../types/medication";
+import { formatAge } from "../lib/age";
 import { formatDateTime, formatDecimal } from "../lib/format";
+
+export type ClinicalWarning = {
+  id: string;
+  title: string;
+  message: string;
+};
 
 type PrescriptionCardProps = {
   medication: Medication | null;
@@ -8,10 +20,17 @@ type PrescriptionCardProps = {
   errorMessage: string | null;
   weightKg: number;
   age: PatientAge;
-  ageAlert: string | null;
-  ageAcknowledged: boolean;
-  onAgeAcknowledgedChange: (value: boolean) => void;
+  warnings: ClinicalWarning[];
+  warningsAcknowledged: boolean;
+  onWarningsAcknowledgedChange: (value: boolean) => void;
+  doseUnit: AdministrationUnit;
+  onDoseUnitChange: (unit: AdministrationUnit) => void;
 };
+
+const doseUnits: Array<{ value: AdministrationUnit; label: string }> = [
+  { value: "mL", label: "mL" },
+  { value: "gotas", label: "Gotas" }
+];
 
 export function PrescriptionCard({
   medication,
@@ -19,9 +38,11 @@ export function PrescriptionCard({
   errorMessage,
   weightKg,
   age,
-  ageAlert,
-  ageAcknowledged,
-  onAgeAcknowledgedChange
+  warnings,
+  warningsAcknowledged,
+  onWarningsAcknowledgedChange,
+  doseUnit,
+  onDoseUnitChange
 }: PrescriptionCardProps) {
   if (!medication || !calculation) {
     return (
@@ -46,6 +67,7 @@ export function PrescriptionCard({
   }
 
   const { receita } = calculation;
+  const showingDrops = calculation.unidadeAplicada === "gotas";
   const concentration = `${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade}`;
 
   return (
@@ -60,24 +82,28 @@ export function PrescriptionCard({
         <span className="result-time">{formatDateTime(new Date())}</span>
       </div>
 
-      {ageAlert || calculation.limitadoPelaDoseMaxima ? (
+      {warnings.length > 0 || calculation.limitadoPelaDoseMaxima ? (
         <div className="result-notices">
-          {ageAlert ? (
+          {warnings.length > 0 ? (
             <div className="notice notice-warn" role="alert">
-              <div className="notice-body">
-                <TriangleAlert size={20} strokeWidth={2} aria-hidden="true" />
-                <div>
-                  <strong>Restrição por idade</strong>
-                  <p>{ageAlert}</p>
+              {warnings.map((warning) => (
+                <div className="notice-body" key={warning.id}>
+                  <TriangleAlert size={20} strokeWidth={2} aria-hidden="true" />
+                  <div>
+                    <strong>{warning.title}</strong>
+                    <p>{warning.message}</p>
+                  </div>
                 </div>
-              </div>
+              ))}
               <label className="notice-confirm">
                 <input
                   type="checkbox"
-                  checked={ageAcknowledged}
-                  onChange={(event) => onAgeAcknowledgedChange(event.target.checked)}
+                  checked={warningsAcknowledged}
+                  onChange={(event) => onWarningsAcknowledgedChange(event.target.checked)}
                 />
-                Revisei a restrição e quero prosseguir
+                {warnings.length > 1
+                  ? "Revisei os alertas e quero prosseguir"
+                  : "Revisei o alerta e quero prosseguir"}
               </label>
             </div>
           ) : null}
@@ -100,16 +126,44 @@ export function PrescriptionCard({
       ) : null}
 
       <div className="dose-hero">
-        <span className="dose-hero-label">Administrar por dose</span>
+        <div className="dose-hero-top">
+          <span className="dose-hero-label">Administrar por dose</span>
+          <div className="segmented segmented-sm" role="radiogroup" aria-label="Unidade da dose">
+            {doseUnits.map((unit) => (
+              <button
+                key={unit.value}
+                type="button"
+                role="radio"
+                aria-checked={doseUnit === unit.value}
+                onClick={() => onDoseUnitChange(unit.value)}
+              >
+                {unit.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="dose-hero-value">
-          <span>{formatDecimal(calculation.volumePorTomadaMl)}</span>
-          <span className="dose-hero-unit">mL</span>
+          {showingDrops ? (
+            <>
+              <span>{calculation.gotasPorTomada}</span>
+              <span className="dose-hero-unit">
+                {calculation.gotasPorTomada === 1 ? "gota" : "gotas"}
+              </span>
+            </>
+          ) : (
+            <>
+              <span>{formatDecimal(calculation.volumePorTomadaMl)}</span>
+              <span className="dose-hero-unit">mL</span>
+            </>
+          )}
         </div>
         <span className="dose-hero-detail">
-          {formatDecimal(calculation.dosePorTomadaMg)} mg · {calculation.viaTexto} ·{" "}
-          {calculation.frequenciaTexto}
+          {formatDecimal(calculation.dosePorTomadaMg)} mg
+          {showingDrops ? ` · ${formatDecimal(calculation.volumePorTomadaMl)} mL` : ""} ·{" "}
+          {calculation.viaTexto} · {calculation.frequenciaTexto}
           {calculation.duracaoTexto ? ` · por ${calculation.duracaoTexto}` : ""}
         </span>
+        {doseUnit === "gotas" ? <DropsNote calculation={calculation} /> : null}
       </div>
 
       <dl className="dose-stats">
@@ -146,11 +200,7 @@ export function PrescriptionCard({
       <div className="result-footer">
         <ul className="patient-chips" aria-label="Dados usados no cálculo">
           <li>{formatDecimal(weightKg)} kg</li>
-          {age.value ? (
-            <li>
-              {formatDecimal(age.value)} {age.unit.toLocaleLowerCase("pt-BR")}
-            </li>
-          ) : null}
+          {age.value !== null ? <li>{formatAge(age)}</li> : null}
           <li>{medication.via_administracao}</li>
           {calculation.duracaoTexto ? <li>{calculation.duracaoTexto}</li> : null}
         </ul>
@@ -161,5 +211,32 @@ export function PrescriptionCard({
         </p>
       </div>
     </section>
+  );
+}
+
+function DropsNote({ calculation }: { calculation: DoseCalculation }) {
+  if (calculation.gotasPorTomada === null) {
+    return (
+      <p className="drops-note is-warning">
+        A dose é menor que 1 gota ({formatDecimal(calculation.gotasPorTomadaExatas)} calculada). A
+        prescrição foi mantida em mL.
+      </p>
+    );
+  }
+
+  const rounded = Math.abs(calculation.gotasPorTomada - calculation.gotasPorTomadaExatas) >= 0.05;
+  const factor = `${formatDecimal(calculation.gotasPorMl)} gotas/mL`;
+
+  return (
+    <p className={`drops-note${calculation.gotasFatorPadrao ? " is-warning" : ""}`}>
+      {calculation.gotasFatorPadrao
+        ? `Fator padrão de ${factor}: confirme na bula, pois varia entre apresentações.`
+        : `Conversão: ${factor}.`}
+      {rounded
+        ? ` Arredondado de ${formatDecimal(calculation.gotasPorTomadaExatas, 1)} gotas${
+            calculation.limitadoPelaDoseMaxima ? " para baixo, sem passar da dose máxima" : ""
+          }.`
+        : ""}
+    </p>
   );
 }

@@ -21,6 +21,7 @@ const medicamentoSchema = z.object({
   dose_max_tomada_mg: z.number().positive().nullable(),
   dose_max_dia_mg: z.number().positive().nullable(),
   fracionamento_vezes_dia: z.number().positive(),
+  gotas_por_ml: z.number().positive().nullable(),
   via_administracao: z.string().min(1),
   duracao_tratamento_padrao: z.string(),
   tags_busca: z.string(),
@@ -47,6 +48,7 @@ const propertyAliases = {
   ],
   dose_max_dia_mg: ["dose_max_dia_mg", "Dose Máx Dia mg", "Dose Max Dia mg", "Dose Máxima Diária"],
   fracionamento_vezes_dia: ["fracionamento_vezes_dia", "Fracionamento Vezes/Dia", "Fracionamento"],
+  gotas_por_ml: ["gotas_por_ml", "Gotas por mL", "Gotas/mL"],
   via_administracao: ["via_administracao", "Via Administração", "Via Administracao", "Via"],
   duracao_tratamento_padrao: [
     "duracao_tratamento_padrao",
@@ -76,6 +78,7 @@ export function mapNotionPageToMedicamento(page: PageObjectResponse): Medicament
     dose_max_tomada_mg: readNullableNumber(optionalProperty(props, propertyAliases.dose_max_tomada_mg)),
     dose_max_dia_mg: readNullableNumber(optionalProperty(props, propertyAliases.dose_max_dia_mg)),
     fracionamento_vezes_dia: readNumber(requiredProperty(props, propertyAliases.fracionamento_vezes_dia)),
+    gotas_por_ml: readNullableNumber(optionalProperty(props, propertyAliases.gotas_por_ml)),
     via_administracao:
       readNullableText(optionalProperty(props, propertyAliases.via_administracao)) ?? "VO",
     duracao_tratamento_padrao:
