@@ -13,6 +13,8 @@ export type Medication = {
   idade_max_unidade: AgeUnit | null;
   alerta_restricao: string | null;
   dose_alvo_mg_kg_dia: number;
+  dose_max_tomada_mg: number | null;
+  dose_max_dia_mg: number | null;
   fracionamento_vezes_dia: number;
   via_administracao: string;
   duracao_tratamento_padrao: string;
@@ -28,6 +30,8 @@ export type PatientAge = {
 export type DoseCalculation = {
   doseDiariaMg: number;
   dosePorTomadaMg: number;
+  dosePorTomadaCalculadaMg: number;
+  limitadoPelaDoseMaxima: boolean;
   volumePorTomadaMl: number;
   intervaloHoras: number;
   frequenciaTexto: string;
@@ -36,3 +40,8 @@ export type DoseCalculation = {
   duracaoTexto: string;
   prescriptionText: string;
 };
+
+export type DoseResult =
+  | { status: "empty" }
+  | { status: "error"; message: string }
+  | { status: "ok"; calculation: DoseCalculation };

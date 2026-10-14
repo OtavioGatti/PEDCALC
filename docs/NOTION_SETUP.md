@@ -21,6 +21,8 @@ Use exatamente estes nomes:
 - `idade_max_unidade`
 - `alerta_restricao`
 - `dose_alvo_mg_kg_dia`
+- `dose_max_tomada_mg` (opcional, número em mg)
+- `dose_max_dia_mg` (opcional, número em mg)
 - `fracionamento_vezes_dia`
 - `via_administracao`
 - `duracao_tratamento_padrao`
@@ -38,9 +40,18 @@ Idade:
 Concentração:
 
 - `mg/mL`
-- `mg/5 mL`
+- `mg/5 mL` (qualquer volume: `mg/2 mL`, `mg/10 mL`...)
 - `mcg/mL`
-- `UI/mL`
+- `g/mL`
+
+Qualquer outra unidade (ex.: `UI/mL`, `mg/gota`, `mg/comprimido`) bloqueia o cálculo no app,
+porque a dose alvo é em mg/kg/dia e o volume seria calculado errado.
+
+## Dose máxima
+
+Se `dose_max_tomada_mg` ou `dose_max_dia_mg` estiverem preenchidas, o app limita a dose por
+tomada ao menor desses limites (a dose diária máxima é dividida pelo fracionamento) e mostra um
+aviso no card. Deixe em branco para não aplicar limite.
 
 Via de administração:
 
@@ -83,3 +94,6 @@ create index if not exists medicamentos_tags_busca_idx
 ```
 
 O mesmo SQL está em `supabase/002_add_prescription_metadata.sql`.
+
+Antes de fazer deploy do backend com os campos de dose máxima, aplique também
+`supabase/003_add_max_dose.sql`. Sem ela, o sync falha com "Could not find the column".

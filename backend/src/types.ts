@@ -12,6 +12,8 @@ export type Medicamento = {
   idade_max_unidade: UnidadeIdade | null;
   alerta_restricao: string | null;
   dose_alvo_mg_kg_dia: number;
+  dose_max_tomada_mg: number | null;
+  dose_max_dia_mg: number | null;
   fracionamento_vezes_dia: number;
   via_administracao: string;
   duracao_tratamento_padrao: string;

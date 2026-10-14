@@ -18,6 +18,8 @@ const medicamentoSchema = z.object({
   idade_max_unidade: unidadeIdadeSchema.nullable(),
   alerta_restricao: z.string().nullable(),
   dose_alvo_mg_kg_dia: z.number().positive(),
+  dose_max_tomada_mg: z.number().positive().nullable(),
+  dose_max_dia_mg: z.number().positive().nullable(),
   fracionamento_vezes_dia: z.number().positive(),
   via_administracao: z.string().min(1),
   duracao_tratamento_padrao: z.string(),
@@ -37,6 +39,13 @@ const propertyAliases = {
   idade_max_unidade: ["idade_max_unidade", "Idade Max Unidade", "Idade Máxima Unidade"],
   alerta_restricao: ["alerta_restricao", "Alerta Restrição", "Alerta Restricao"],
   dose_alvo_mg_kg_dia: ["dose_alvo_mg_kg_dia", "Dose Alvo mg/kg/dia", "Dose Alvo"],
+  dose_max_tomada_mg: [
+    "dose_max_tomada_mg",
+    "Dose Máx Tomada mg",
+    "Dose Max Tomada mg",
+    "Dose Máxima por Tomada"
+  ],
+  dose_max_dia_mg: ["dose_max_dia_mg", "Dose Máx Dia mg", "Dose Max Dia mg", "Dose Máxima Diária"],
   fracionamento_vezes_dia: ["fracionamento_vezes_dia", "Fracionamento Vezes/Dia", "Fracionamento"],
   via_administracao: ["via_administracao", "Via Administração", "Via Administracao", "Via"],
   duracao_tratamento_padrao: [
@@ -64,6 +73,8 @@ export function mapNotionPageToMedicamento(page: PageObjectResponse): Medicament
     idade_max_unidade: readNullableUnidadeIdade(optionalProperty(props, propertyAliases.idade_max_unidade)),
     alerta_restricao: readNullableText(optionalProperty(props, propertyAliases.alerta_restricao)),
     dose_alvo_mg_kg_dia: readNumber(requiredProperty(props, propertyAliases.dose_alvo_mg_kg_dia)),
+    dose_max_tomada_mg: readNullableNumber(optionalProperty(props, propertyAliases.dose_max_tomada_mg)),
+    dose_max_dia_mg: readNullableNumber(optionalProperty(props, propertyAliases.dose_max_dia_mg)),
     fracionamento_vezes_dia: readNumber(requiredProperty(props, propertyAliases.fracionamento_vezes_dia)),
     via_administracao:
       readNullableText(optionalProperty(props, propertyAliases.via_administracao)) ?? "VO",

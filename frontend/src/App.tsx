@@ -22,8 +22,8 @@ function parseDecimal(value: string) {
 }
 
 export default function App() {
-  const [weight, setWeight] = useState("12,5");
-  const [ageValue, setAgeValue] = useState("2,5");
+  const [weight, setWeight] = useState("");
+  const [ageValue, setAgeValue] = useState("");
   const [ageUnit, setAgeUnit] = useState<AgeUnit>("Meses");
   const [query, setQuery] = useState("");
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null);
@@ -64,7 +64,8 @@ export default function App() {
 
     return Array.from(uniqueByRoute.values());
   }, [loadState.medications, selectedMedication]);
-  const calculation = calculateDose(selectedMedication, weightKg, duration);
+  const doseResult = calculateDose(selectedMedication, weightKg, duration);
+  const calculation = doseResult.status === "ok" ? doseResult.calculation : null;
   const ageValidation = validateMedicationAge(selectedMedication, patientAge);
 
   async function refreshMedications() {
@@ -75,9 +76,7 @@ export default function App() {
       setLoadState(result);
       setSelectedMedication((current) => {
         const next =
-          (current && result.medications.find((medication) => medication.id === current.id)) ??
-          result.medications[0] ??
-          null;
+          (current && result.medications.find((medication) => medication.id === current.id)) ?? null;
         setDuration(next?.duracao_tratamento_padrao ?? "");
         return next;
       });
@@ -176,6 +175,7 @@ export default function App() {
       <PrescriptionCard
         medication={selectedMedication}
         calculation={calculation}
+        errorMessage={doseResult.status === "error" ? doseResult.message : null}
         weightKg={weightKg}
         age={patientAge}
       />

@@ -581,6 +581,29 @@ button {
   display: block;
 }
 
+.dose-grid .dose-secondary {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.dose-limit-warning {
+  margin: 16px 18px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--amber);
+  border-left-width: 5px;
+  border-radius: 8px;
+  color: #92400e;
+  background: #fffbeb;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.empty-prescription .dose-error {
+  color: #b91c1c;
+}
+
 .prescription-text {
   white-space: pre-wrap;
   padding: 16px 0;

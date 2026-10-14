@@ -6,6 +6,7 @@ import { formatDateTime, formatDecimal } from "../lib/format";
 type PrescriptionCardProps = {
   medication: Medication | null;
   calculation: DoseCalculation | null;
+  errorMessage: string | null;
   weightKg: number;
   age: PatientAge;
 };
@@ -13,6 +14,7 @@ type PrescriptionCardProps = {
 export function PrescriptionCard({
   medication,
   calculation,
+  errorMessage,
   weightKg,
   age
 }: PrescriptionCardProps) {
@@ -48,9 +50,22 @@ export function PrescriptionCard({
             </div>
             <div>
               <span>Dose diária</span>
-              <strong>{formatDecimal(medication.dose_alvo_mg_kg_dia)} mg/kg/dia</strong>
+              <strong>
+                {formatDecimal(calculation.doseDiariaMg)} mg/dia
+                <small className="dose-secondary">
+                  {formatDecimal(medication.dose_alvo_mg_kg_dia)} mg/kg/dia
+                </small>
+              </strong>
             </div>
           </div>
+
+          {calculation.limitadoPelaDoseMaxima ? (
+            <p className="dose-limit-warning" role="alert">
+              A dose calculada pelo peso ({formatDecimal(calculation.dosePorTomadaCalculadaMg)} mg
+              por dose) excede a dose máxima. Dose limitada a{" "}
+              {formatDecimal(calculation.dosePorTomadaMg)} mg por dose.
+            </p>
+          ) : null}
 
           <pre className="prescription-text">{calculation.prescriptionText}</pre>
 
@@ -70,10 +85,18 @@ export function PrescriptionCard({
           </div>
 
           <p className="clinical-note">
-            Cálculo baseado em {formatDecimal(medication.dose_alvo_mg_kg_dia)} mg/kg/dia.
-            Sempre confirme diretrizes locais e a bula do medicamento.
+            Cálculo baseado em {formatDecimal(medication.dose_alvo_mg_kg_dia)} mg/kg/dia
+            {calculation.limitadoPelaDoseMaxima ? ", limitado à dose máxima" : ""}. Sempre
+            confirme diretrizes locais e a bula do medicamento.
           </p>
         </>
+      ) : errorMessage ? (
+        <div className="empty-prescription">
+          <strong>Cálculo indisponível</strong>
+          <p className="dose-error" role="alert">
+            {errorMessage}
+          </p>
+        </div>
       ) : (
         <div className="empty-prescription">
           <strong>Informe peso, idade e medicamento.</strong>

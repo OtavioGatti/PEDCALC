@@ -14,6 +14,8 @@ export const seedMedications: Medication[] = [
     alerta_restricao:
       "Este medicamento não é recomendado para menores de 3 meses sem avaliação médica especializada.",
     dose_alvo_mg_kg_dia: 45,
+    dose_max_tomada_mg: 875,
+    dose_max_dia_mg: 1750,
     fracionamento_vezes_dia: 2,
     via_administracao: "VO",
     duracao_tratamento_padrao: "7 dias",
@@ -32,6 +34,8 @@ export const seedMedications: Medication[] = [
     idade_max_unidade: null,
     alerta_restricao: null,
     dose_alvo_mg_kg_dia: 60,
+    dose_max_tomada_mg: 1000,
+    dose_max_dia_mg: 4000,
     fracionamento_vezes_dia: 4,
     via_administracao: "VO",
     duracao_tratamento_padrao: "3 dias",
@@ -51,6 +55,8 @@ export const seedMedications: Medication[] = [
     alerta_restricao:
       "Evitar em menores de 6 meses, desidratação, doença renal ou suspeita de dengue.",
     dose_alvo_mg_kg_dia: 30,
+    dose_max_tomada_mg: 400,
+    dose_max_dia_mg: 1200,
     fracionamento_vezes_dia: 3,
     via_administracao: "VO",
     duracao_tratamento_padrao: "3 dias",
@@ -70,6 +76,8 @@ export const seedMedications: Medication[] = [
     alerta_restricao:
       "Evitar em menores de 3 meses ou abaixo de 5 kg. Confirmar restrições locais.",
     dose_alvo_mg_kg_dia: 60,
+    dose_max_tomada_mg: 1000,
+    dose_max_dia_mg: 4000,
     fracionamento_vezes_dia: 4,
     via_administracao: "VO",
     duracao_tratamento_padrao: "3 dias",

@@ -1,39 +1,102 @@
-import type { DoseCalculation, Medication } from "../types/medication";
+import type { DoseCalculation, DoseResult, Medication } from "../types/medication";
 import { formatDecimal } from "./format";
+
+const MASS_TO_MG: Record<string, number> = {
+  mcg: 0.001,
+  "µg": 0.001,
+  mg: 1,
+  g: 1000
+};
+
+const CONCENTRATION_PATTERN = /^(mcg|µg|mg|g)\s*\/\s*(\d+(?:[.,]\d+)?)?\s*ml$/i;
+
+export const SUPPORTED_CONCENTRATION_UNITS = "mg/mL, mg/5 mL, mcg/mL ou g/mL";
+
+export function concentrationMgPerMl(valor: number, unidade: string): number | null {
+  const match = unidade.trim().match(CONCENTRATION_PATTERN);
+
+  if (!match || !(valor > 0)) {
+    return null;
+  }
+
+  const massFactor = MASS_TO_MG[match[1].toLowerCase()];
+  const volumeMl = match[2] ? Number(match[2].replace(",", ".")) : 1;
+
+  if (!massFactor || !(volumeMl > 0)) {
+    return null;
+  }
+
+  return (valor * massFactor) / volumeMl;
+}
+
+export function frequencyText(timesPerDay: number) {
+  if (timesPerDay === 1) {
+    return "1 vez ao dia";
+  }
+
+  const intervalHours = 24 / timesPerDay;
+
+  if (Number.isInteger(intervalHours)) {
+    return `de ${intervalHours} em ${intervalHours} horas`;
+  }
+
+  return `${formatDecimal(timesPerDay)} vezes ao dia`;
+}
 
 export function calculateDose(
   medication: Medication | null,
   patientWeightKg: number,
   duration: string
-): DoseCalculation | null {
-  if (!medication || !patientWeightKg || patientWeightKg <= 0) {
-    return null;
+): DoseResult {
+  if (!medication || !(patientWeightKg > 0)) {
+    return { status: "empty" };
   }
 
-  const doseDiariaMg = patientWeightKg * medication.dose_alvo_mg_kg_dia;
-  const dosePorTomadaMg = doseDiariaMg / medication.fracionamento_vezes_dia;
-  const volumePorTomadaMl = dosePorTomadaMg / medication.concentracao_valor;
-  const intervaloHoras = 24 / medication.fracionamento_vezes_dia;
-  const frequenciaTexto = `${formatDecimal(intervaloHoras, 0)}/${formatDecimal(intervaloHoras, 0)}`;
+  const mgPerMl = concentrationMgPerMl(medication.concentracao_valor, medication.concentracao_unidade);
+
+  if (mgPerMl === null) {
+    return {
+      status: "error",
+      message: `Não é possível calcular o volume: a unidade de concentração "${medication.concentracao_unidade}" não é suportada. Use ${SUPPORTED_CONCENTRATION_UNITS}.`
+    };
+  }
+
+  const timesPerDay = medication.fracionamento_vezes_dia;
+  const dosePorTomadaCalculadaMg = (patientWeightKg * medication.dose_alvo_mg_kg_dia) / timesPerDay;
+
+  const maxPerDoseLimits = [
+    positiveOrNull(medication.dose_max_tomada_mg),
+    positiveOrNull(medication.dose_max_dia_mg) !== null
+      ? (medication.dose_max_dia_mg as number) / timesPerDay
+      : null
+  ].filter((limit): limit is number => limit !== null);
+
+  const dosePorTomadaMg = Math.min(dosePorTomadaCalculadaMg, ...maxPerDoseLimits);
+  const limitadoPelaDoseMaxima = dosePorTomadaMg < dosePorTomadaCalculadaMg;
+  const doseDiariaMg = dosePorTomadaMg * timesPerDay;
+  const volumePorTomadaMl = dosePorTomadaMg / mgPerMl;
+  const intervaloHoras = 24 / timesPerDay;
+  const frequenciaTexto = frequencyText(timesPerDay);
   const viaTexto = getRouteText(medication.via_administracao);
   const usoTitulo = getUseTitle(medication.via_administracao);
   const duracaoTexto = formatTreatmentDuration(duration);
   const duracaoSufixo = duracaoTexto ? ` por ${duracaoTexto}` : "";
+  const note = cleanPrescriptionNote(medication.texto_prescricao_padrao);
 
   const prescriptionText = [
     usoTitulo,
     `1. ${medication.nome} (${formatDecimal(medication.concentracao_valor)} ${medication.concentracao_unidade}) ------- 1 Frasco`,
-    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} de ${frequenciaTexto} em ${frequenciaTexto} horas${duracaoSufixo}.`,
-    cleanPrescriptionNote(medication.texto_prescricao_padrao)
-      ? `   ${cleanPrescriptionNote(medication.texto_prescricao_padrao)}`
-      : ""
+    `   Dar ${formatDecimal(volumePorTomadaMl)} mL por ${viaTexto} ${frequenciaTexto}${duracaoSufixo}.`,
+    note ? `   ${note}` : ""
   ]
     .filter(Boolean)
     .join("\n");
 
-  return {
+  const calculation: DoseCalculation = {
     doseDiariaMg,
     dosePorTomadaMg,
+    dosePorTomadaCalculadaMg,
+    limitadoPelaDoseMaxima,
     volumePorTomadaMl,
     intervaloHoras,
     frequenciaTexto,
@@ -42,6 +105,8 @@ export function calculateDose(
     duracaoTexto,
     prescriptionText
   };
+
+  return { status: "ok", calculation };
 }
 
 export function formatTreatmentDuration(duration: string) {
@@ -56,6 +121,10 @@ export function formatTreatmentDuration(duration: string) {
   }
 
   return trimmed;
+}
+
+function positiveOrNull(value: number | null | undefined) {
+  return typeof value === "number" && value > 0 ? value : null;
 }
 
 function cleanPrescriptionNote(note: string) {
